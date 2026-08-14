@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+*.pbix
+*.twbx
+*.hyper
+*.xlsx
+*.csv
+node_modules/
+.env
+
