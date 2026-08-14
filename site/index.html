@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rafael Rodrigues | BI Consultant & Analytics Engineer</title>
+    <meta
+      name="description"
+      content="Senior BI Consultant & Analytics Engineer portfolio with executive dashboards, Power BI, Tableau, Looker, BigQuery, Snowflake, AWS, Python and AI Analytics."
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="shell topbar-inner">
+        <div class="brand">Rafael Rodrigues</div>
+        <nav class="nav">
+          <a href="#dashboard">Dashboard</a>
+          <a href="#engine">Decision Engine</a>
+          <a href="#cases">Cases</a>
+          <a href="#stack">Stack</a>
+          <a href="#sources">Sources</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="shell">
+          <div class="eyebrow">Senior BI Consultant & Analytics Engineer</div>
+          <h1>Clear dashboards and trusted KPIs for better business decisions.</h1>
+          <p class="subtitle">
+            Power BI Developer | PL-300 | Tableau Certified | AI Analytics | Python | Looker | BigQuery | Snowflake | AWS.
+            This portfolio shows how I use public company data to build simple executive dashboards, clear KPI logic, and useful business insights.
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="#dashboard">View Dashboard</a>
+            <a class="button" href="https://github.com/jfs195805-alt/-bi-decision-insights-portfolio">GitHub Portfolio</a>
+            <a class="button" href="./data/global_tech_financials_2024.csv">Download Data</a>
+          </div>
+
+          <div class="proof-strip" aria-label="Key proof points">
+            <div>
+              <strong>18+ years</strong>
+              <span>BI and analytics experience</span>
+            </div>
+            <div>
+              <strong>PL-300 + Tableau</strong>
+              <span>Certified dashboard skills</span>
+            </div>
+            <div>
+              <strong>Power BI, Looker, SQL</strong>
+              <span>Clear metric logic and BI delivery</span>
+            </div>
+            <div>
+              <strong>Global + Government</strong>
+              <span>Executive and public-service use cases</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard">
+        <div class="shell">
+          <h2 class="section-title">Global Tech Executive Dashboard</h2>
+          <p class="subtitle">
+            Public official annual-report data from Apple, Microsoft, Alphabet, Amazon, Meta, Netflix, NVIDIA, and Tesla.
+            The dashboard focuses on company size, profit, technology investment, and clear decision signals.
+          </p>
+          <div id="filters" class="filter-row"></div>
+
+          <div class="grid" style="margin-top: 18px;">
+            <div class="card metric">
+              <div class="metric-label">Total Revenue</div>
+              <div id="metric-revenue" class="metric-value">...</div>
+              <div class="metric-note">USD millions</div>
+            </div>
+            <div class="card metric">
+              <div class="metric-label">Total Net Income</div>
+              <div id="metric-income" class="metric-value">...</div>
+              <div class="metric-note">USD millions</div>
+            </div>
+            <div class="card metric">
+              <div class="metric-label">R&D / Tech Investment</div>
+              <div id="metric-tech" class="metric-value">...</div>
+              <div class="metric-note">Proxy disclosed in filings</div>
+            </div>
+            <div class="card metric">
+              <div class="metric-label">Blended Net Margin</div>
+              <div id="metric-margin" class="metric-value">...</div>
+              <div class="metric-note">Net income / revenue</div>
+            </div>
+
+            <div class="card wide chart">
+              <h3>Revenue Scale</h3>
+              <div id="revenue-bars" class="bars"></div>
+            </div>
+            <div class="card side chart">
+              <h3>Decision Insights</h3>
+              <ol id="insights" class="insight-list"></ol>
+            </div>
+
+            <div class="card wide chart">
+              <h3>Net Margin</h3>
+              <div id="margin-bars" class="bars"></div>
+            </div>
+            <div class="card side chart">
+              <h3>Technology Intensity</h3>
+              <div id="tech-bars" class="bars"></div>
+            </div>
+
+            <div class="card full">
+              <h3>Company Table</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Company</th>
+                      <th>Ticker</th>
+                      <th>Segment</th>
+                      <th>Revenue</th>
+                      <th>Net Income</th>
+                      <th>Net Margin</th>
+                      <th>Tech Intensity</th>
+                    </tr>
+                  </thead>
+                  <tbody id="company-table"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="engine">
+        <div class="shell">
+          <h2 class="section-title">Executive Decision Engine</h2>
+          <p class="subtitle">
+            This is a simple score that turns business numbers into a ranked list.
+            Each company gets points for size, profit, technology investment, and productivity.
+          </p>
+
+          <div class="engine-layout">
+            <div class="card engine-card">
+              <div class="metric-label">Explain It Simply</div>
+              <h3>If this were a school report card, every company gets four grades.</h3>
+              <p>
+                Revenue shows how big the company is. Margin shows how much profit stays in the company.
+                Technology intensity shows how much the company invests in the future. Productivity shows how much value the team creates.
+                The dashboard puts these grades together into one score.
+              </p>
+              <div class="formula">
+                Score = Scale 30% + Margin 30% + Tech 20% + Productivity 20%
+              </div>
+            </div>
+
+            <div class="card engine-card">
+              <div class="metric-label">Analytics Engineering Layer</div>
+              <h3>Clean the data, create the score, rank the result, explain the answer.</h3>
+              <div class="pipeline">
+                <span>Official Data</span>
+                <span>Metric Layer</span>
+                <span>Weighted Score</span>
+                <span>Executive View</span>
+              </div>
+              <p>
+                I can use the same idea inside a company or government team:
+                official KPIs, clear formulas, and a list of priorities that leaders can trust.
+              </p>
+            </div>
+
+            <div class="card full">
+              <h3>Decision Score Ranking</h3>
+              <div id="decision-ranking" class="score-grid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="technical-proof">
+        <div class="shell">
+          <h2 class="section-title">Technical Proof</h2>
+          <p class="subtitle">
+            This portfolio is simple to read, but it has real BI work behind it: data, metrics, code, ranking logic, UX, and business explanation.
+          </p>
+
+          <div class="proof-grid">
+            <article class="card proof-card">
+              <span>01</span>
+              <h3>Official Public Data</h3>
+              <p>Financial data from annual reports, SEC filings, and investor relations pages.</p>
+            </article>
+            <article class="card proof-card">
+              <span>02</span>
+              <h3>Metric Layer</h3>
+              <p>Revenue, net income, net margin, technology intensity, and productivity.</p>
+            </article>
+            <article class="card proof-card">
+              <span>03</span>
+              <h3>Decision Score</h3>
+              <p>A clear formula that ranks companies by scale, profit, technology, and productivity.</p>
+            </article>
+            <article class="card proof-card">
+              <span>04</span>
+              <h3>Executive UX</h3>
+              <p>Dark premium dashboard, filters, KPI cards, animated bars, tables, and simple insights.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="cases">
+        <div class="shell">
+          <h2 class="section-title">Portfolio Case Studies</h2>
+          <div class="case-list">
+            <article class="card case-card">
+              <h3>Executive Performance Command Center</h3>
+              <p>A leadership dashboard for companies and governments: KPIs, risks, targets, and action priorities.</p>
+              <a href="https://github.com/jfs195805-alt/-bi-decision-insights-portfolio/tree/main/cases/01-executive-performance-command-center">Read case</a>
+            </article>
+            <article class="card case-card">
+              <h3>KPI Governance And Semantic Model Modernization</h3>
+              <p>Official KPI rules and reusable metric logic for Power BI, Tableau, Looker, SQL, and cloud platforms.</p>
+              <a href="https://github.com/jfs195805-alt/-bi-decision-insights-portfolio/tree/main/cases/02-kpi-governance-semantic-model">Read case</a>
+            </article>
+            <article class="card case-card">
+              <h3>Operational Efficiency And Service Insights Dashboard</h3>
+              <p>SLA, backlog, complaints, delays, customer or citizen impact, and priority lists for operations teams.</p>
+              <a href="https://github.com/jfs195805-alt/-bi-decision-insights-portfolio/tree/main/cases/03-operational-efficiency-service-insights">Read case</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="stack">
+        <div class="shell">
+          <h2 class="section-title">Main Skills And Keywords</h2>
+          <div class="card">
+            <div class="tag-list">
+              <span class="tag">Power BI</span>
+              <span class="tag">Power BI Developer</span>
+              <span class="tag">PL-300</span>
+              <span class="tag">Tableau Certified</span>
+              <span class="tag">Looker</span>
+              <span class="tag">LookML</span>
+              <span class="tag">SQL</span>
+              <span class="tag">Python</span>
+              <span class="tag">BigQuery</span>
+              <span class="tag">Snowflake</span>
+              <span class="tag">AWS</span>
+              <span class="tag">dbt</span>
+              <span class="tag">DAX</span>
+              <span class="tag">Analytics Engineer</span>
+              <span class="tag">BI Consultant</span>
+              <span class="tag">AI Analytics</span>
+              <span class="tag">Executive Dashboards</span>
+              <span class="tag">KPI Governance</span>
+              <span class="tag">Decision Insights</span>
+              <span class="tag">Global</span>
+              <span class="tag">LATAM</span>
+              <span class="tag">UAE</span>
+              <span class="tag">Remote</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="sources">
+        <div class="shell">
+          <h2 class="section-title">Official Data Sources</h2>
+          <div class="card">
+            <p>
+              Data comes from public annual reports, SEC filings, and investor relations pages. See the
+              <a href="./data/README.md">data notes</a> for source links and field definitions.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell">
+        Senior BI Consultant & Analytics Engineer | Power BI Developer | PL-300 | Tableau Certified | AI Analytics | Python | Looker | BigQuery | Snowflake | AWS
+      </div>
+    </footer>
+
+    <script src="./js/app.js"></script>
+  </body>
+</html>
