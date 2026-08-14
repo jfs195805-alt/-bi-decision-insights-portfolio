@@ -2,6 +2,8 @@
 
 Senior BI Consultant & Analytics Engineer.
 
+Portfolio website: https://jfs195805-alt.github.io/-bi-decision-insights-portfolio/
+
 This repository contains my BI analytics portfolio source code, dashboard logic, public data, business cases and technical documentation.
 
 ## Main Positioning
