@@ -1,0 +1,9 @@
+company,ticker,segment,fiscal_year,revenue_usd_m,net_income_usd_m,rd_or_tech_usd_m,employees,source_url,source_note
+Apple,AAPL,Consumer Technology,2024,391035,93736,31370,164000,https://investor.apple.com/sec-filings/default.aspx,Apple Form 10-K FY2024
+Microsoft,MSFT,Cloud and Software,2024,245122,88136,29510,228000,https://www.microsoft.com/en-us/investor/annual-reports.aspx,Microsoft Annual Report FY2024
+Alphabet,GOOGL,Search Cloud and AI,2024,350018,100118,49326,183323,https://abc.xyz/investor/,Alphabet Annual Report FY2024
+Amazon,AMZN,Ecommerce Cloud and Ads,2024,637959,59248,88544,1556000,https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx,Amazon Annual Report FY2024
+Meta,META,Social Platforms and AI,2024,164501,62360,43873,74067,https://investor.fb.com/financials/default.aspx,Meta Annual Report FY2024
+Netflix,NFLX,Streaming and Media,2024,39001,8712,2885,14000,https://ir.netflix.net/financials/annual-reports-and-proxies/default.aspx,Netflix Form 10-K FY2024
+NVIDIA,NVDA,AI Semiconductors,2025,130497,72880,12914,36000,https://investor.nvidia.com/financial-info/annual-reports-and-proxies/default.aspx,NVIDIA Annual Report FY2025
+Tesla,TSLA,Electric Vehicles and Energy,2024,97690,7091,4540,125665,https://ir.tesla.com/sec-filings,Tesla Form 10-K FY2024
