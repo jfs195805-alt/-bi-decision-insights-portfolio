@@ -1,13 +1,17 @@
 User-agent: *
+Disallow: /-bi-decision-insights-portfolio/daniela-coelho-psicologia/
 Allow: /
 
 User-agent: OAI-SearchBot
+Disallow: /-bi-decision-insights-portfolio/daniela-coelho-psicologia/
 Allow: /
 
 User-agent: Googlebot
+Disallow: /-bi-decision-insights-portfolio/daniela-coelho-psicologia/
 Allow: /
 
 User-agent: Bingbot
+Disallow: /-bi-decision-insights-portfolio/daniela-coelho-psicologia/
 Allow: /
 
 Sitemap: https://jfs195805-alt.github.io/-bi-decision-insights-portfolio/sitemap.xml
