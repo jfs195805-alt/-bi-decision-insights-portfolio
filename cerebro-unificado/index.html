@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#070a12" />
+<title>Cérebro Unificado — Monitor 24/7</title>
+<style>
+:root{--bg:#070a12;--panel:#0e1422;--panel2:#121a2c;--text:#f5f7fb;--muted:#91a0b8;--line:#23304a;--accent:#65e6c4;--blue:#78a8ff;--gold:#ffd479;--danger:#ff7e8d;--ok:#78e08f}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0%,#12203a 0,transparent 28%),radial-gradient(circle at 90% 5%,#16322e 0,transparent 24%),var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.shell{max-width:1400px;margin:auto;padding:22px}.top{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:20px}.brand{display:flex;align-items:center;gap:12px}.orb{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--blue));box-shadow:0 0 45px #65e6c433}.brand h1{font-size:22px;margin:0}.brand p{margin:2px 0 0;color:var(--muted)}.badges{display:flex;gap:8px;flex-wrap:wrap}.badge{padding:7px 10px;border-radius:999px;background:#10192a;border:1px solid var(--line);color:#c8d5e9;font-size:12px}.badge.ok{color:#a5f4d8;border-color:#285e53}.grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:linear-gradient(180deg,#111827dd,#0d1421dd);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 12px 36px #0004}.kpi .label{color:var(--muted);font-size:12px}.kpi .value{font-size:28px;font-weight:800;letter-spacing:-.03em;margin-top:4px}.kpi .hint{color:#7788a3;font-size:11px;margin-top:4px}.section{margin-top:16px}.section h2{font-size:16px;margin:0 0 10px}.two{grid-template-columns:1.2fr .8fr}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.hero{padding:20px}.heroScore{font-size:52px;font-weight:900;letter-spacing:-.05em;color:var(--accent)}.muted{color:var(--muted)}.progress{height:10px;border-radius:10px;background:#1a2539;overflow:hidden;margin-top:10px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));width:0}.list{display:flex;flex-direction:column;gap:9px}.item{padding:12px;border:1px solid #202d45;border-radius:13px;background:#0c1320}.item strong{display:block}.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.pill{font-size:11px;border-radius:999px;padding:4px 7px;background:#17233a;color:#bfd0e8;white-space:nowrap}.pill.gold{color:#ffe8ad}.pill.ok{color:#9df3b4}.pill.danger{color:#ffb0b9}.money{color:#8ef2cf}.notice{border-left:3px solid var(--accent);padding-left:12px}.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse;min-width:720px}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #1c2840}th{font-size:11px;color:#8ea0bc;text-transform:uppercase;letter-spacing:.07em;background:#0d1421}td{color:#d9e3f0}.footer{color:#6f8099;text-align:center;padding:28px 0 10px;font-size:12px}.error{display:none;background:#351721;border:1px solid #713044;color:#ffc4cd;padding:14px;border-radius:14px;margin-bottom:14px}.loading{opacity:.55;pointer-events:none}@media(max-width:900px){.kpis,.two,.three{grid-template-columns:1fr 1fr}}@media(max-width:620px){.shell{padding:14px}.kpis,.two,.three{grid-template-columns:1fr}.kpi .value{font-size:25px}.heroScore{font-size:44px}}
+</style>
+</head>
+<body>
+<div class="shell" id="app">
+  <div class="top">
+    <div class="brand"><div class="orb"></div><div><h1>Cérebro Unificado</h1><p>Monitor público 24/7 • decisões estratégicas consolidadas diariamente</p></div></div>
+    <div class="badges"><span class="badge ok">Somente leitura</span><span class="badge">Sem login</span><span class="badge">Atualização da tela: 5 min</span><span class="badge">Evolução: 1x/dia</span></div>
+  </div>
+  <div class="error" id="error"></div>
+  <div class="grid kpis" id="kpis"></div>
+
+  <div class="section grid two">
+    <div class="card hero">
+      <div class="muted">Evolução diária</div>
+      <div class="heroScore" id="score">—</div>
+      <div id="decision" class="notice">Carregando último ciclo…</div>
+      <div class="progress"><i id="scorebar"></i></div>
+      <div class="muted" style="margin-top:10px" id="cycleTime"></div>
+    </div>
+    <div class="card">
+      <h2>Motivação do dia</h2>
+      <div id="motivation" class="notice muted">Carregando…</div>
+    </div>
+  </div>
+
+  <div class="section grid three">
+    <div class="card"><h2>Conhecimento</h2><div id="knowledge" class="list"></div></div>
+    <div class="card"><h2>Canais</h2><div id="channels" class="list"></div></div>
+    <div class="card"><h2>Saúde do sistema</h2><div id="health" class="list"></div></div>
+  </div>
+
+  <div class="section card">
+    <div class="row"><h2>Próximas ações priorizadas</h2><span class="pill">Geradas pelo ciclo diário</span></div>
+    <div class="tableWrap"><table><thead><tr><th>Prioridade</th><th>Ação</th><th>Área</th><th>Status</th><th>Motivo</th></tr></thead><tbody id="actions"></tbody></table></div>
+  </div>
+
+  <div class="section card">
+    <div class="row"><h2>Monetização em USD</h2><span class="pill gold">Hipóteses ≠ receita</span></div>
+    <div class="tableWrap"><table><thead><tr><th>Score</th><th>Oportunidade</th><th>Status</th><th>Próximo teste</th></tr></thead><tbody id="money"></tbody></table></div>
+  </div>
+
+  <div class="footer" id="updated">Carregando snapshot público do Cerebrodani…</div>
+</div>
+<script>
+const SUPABASE='https://tpjvalzwkqwttvmszvie.supabase.co';
+const KEY='sb_publishable_qjVzPwsF4XXR_LfsE8VTHA_E4dJEnYs';
+const $=id=>document.getElementById(id);const n=v=>new Intl.NumberFormat('pt-BR').format(Number(v||0));const usd=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(v||0));const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function item(label,value,hint=''){return `<div class="item"><div class="row"><strong>${esc(label)}</strong><span>${esc(value)}</span></div>${hint?`<div class="muted">${esc(hint)}</div>`:''}</div>`}
+function kpi(label,value,hint=''){return `<div class="card kpi"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="hint">${esc(hint)}</div></div>`}
+async function load(){document.body.classList.add('loading');$('error').style.display='none';try{const r=await fetch(`${SUPABASE}/rest/v1/tubeops_public_dashboard?id=eq.1&select=snapshot,updated_at`,{headers:{apikey:KEY,Authorization:`Bearer ${KEY}`},cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const rows=await r.json();if(!rows[0])throw new Error('Snapshot público ainda não disponível');const s=rows[0].snapshot||{},k=s.kpis||{},c=s.latest_cycle||{},m=s.motivation||{},ch=s.channels||{};
+$('kpis').innerHTML=[kpi('Transcrições úteis',n(k.transcripts_with_text),'Conhecimento textual disponível'),kpi('Lacunas',n(k.transcript_gaps),'Vídeos ainda sem transcrição utilizável'),kpi('Fontes conectadas',n(k.knowledge_sources),'Transcrições + arquivos + aprendizados'),kpi('Átomos de conhecimento',n(k.knowledge_atoms),'Padrões reutilizáveis'),kpi('YouTube mapeado',n(k.youtube_accounts),'Contas/canais no inventário'),kpi('Instagram mapeado',n(k.instagram_accounts),'Perfis conhecidos'),kpi('Ideias comerciais',n(k.monetization_ideas),'Hipóteses em avaliação'),kpi('Receita observada USD',usd(k.revenue_observed_usd),'Somente eventos financeiros registrados')].join('');
+const score=Number(c.improvement_score||0);$('score').textContent=`${score.toFixed(0)}/100`;$('scorebar').style.width=`${Math.max(0,Math.min(100,score))}%`;$('decision').innerHTML=`<strong>${esc(c.decision_summary||'Aguardando próximo ciclo diário')}</strong>`;$('cycleTime').textContent=c.finished_at?`Último ciclo: ${new Date(c.finished_at).toLocaleString('pt-BR')}`:'Ainda sem ciclo concluído';
+$('motivation').innerHTML=`<strong>${esc(m.title||'Próxima vitória é mensurável')}</strong><div style="margin-top:6px">${esc(m.message||'Aguardando evidência do próximo ciclo.')}</div><div style="margin-top:8px;color:#a5f4d8">${esc(m.action_text||'')}</div>`;
+$('knowledge').innerHTML=item('Transcrições concluídas',n(k.transcripts_done))+item('Erros de transcrição',n(k.transcript_errors))+item('Sem legenda pública',n(k.no_captions))+item('Total de transcrições',n(k.transcripts_total));
+$('channels').innerHTML=item('Psicologia',n(ch.psychology))+item('Sons / ruído',n(ch.noise))+item('Negócios / IA',n(ch.business))+item('Outros canais de referência',n(ch.other));
+$('health').innerHTML=item('Modo','Público / somente leitura')+item('Decisão estratégica','1x por dia')+item('Monitoramento da tela','A cada 5 minutos')+item('Privacidade','Snapshot sanitizado');
+const acts=Array.isArray(s.top_actions)?s.top_actions:[];$('actions').innerHTML=acts.length?acts.map(a=>`<tr><td><span class="pill">${esc(a.priority)}</span></td><td>${esc(a.action_type)}</td><td>${esc(a.target_type)}</td><td>${esc(a.status)}</td><td>${esc(a.rationale)}</td></tr>`).join(''):'<tr><td colspan="5" class="muted">Nenhuma ação registrada.</td></tr>';
+const money=Array.isArray(s.top_monetization)?s.top_monetization:[];$('money').innerHTML=money.length?money.map(x=>`<tr><td><span class="pill gold">${esc(x.opportunity_score)}</span></td><td><strong>${esc(x.title)}</strong><div class="muted">${esc(x.idea_key)}</div></td><td>${esc(x.validation_status)}</td><td>${esc(x.next_test||'A definir')}</td></tr>`).join(''):'<tr><td colspan="4" class="muted">Nenhuma hipótese comercial registrada.</td></tr>';
+$('updated').textContent=`Snapshot atualizado em ${new Date(rows[0].updated_at).toLocaleString('pt-BR')} • leitura pública segura do Cerebrodani`;
+}catch(e){$('error').textContent=`Não foi possível carregar o Cérebro Unificado: ${e.message}`;$('error').style.display='block'}finally{document.body.classList.remove('loading')}}
+load();setInterval(load,300000);
+</script>
+</body>
+</html>
