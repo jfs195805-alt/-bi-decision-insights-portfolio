@@ -3,6 +3,12 @@
 
   const STORAGE_KEY = 'ainflu-youtube-os-v2-state';
   const RESOLVER_API = 'https://yt-resolver-api.vercel.app/api/youtube';
+  const LIVE_SUPABASE_URL = 'https://tpjvalzwkqwttvmszvie.supabase.co';
+  const LIVE_SUPABASE_KEY = 'sb_publishable_qjVzPwsF4XXR_LfsE8VTHA_E4dJEnYs';
+  const LIVE_REFRESH_MS = 60000;
+  const LIVE_VM_STATUS_PATH = 'unified_brain_vm_public_status?select=*';
+  const LIVE_VM_COMMANDS_PATH = 'unified_brain_vm_public_recent_commands?select=*&order=created_at.desc';
+  const LIVE_ROOT_STATUS_PATH = 'unified_brain_public_status?status_key=eq.root&select=*';
 
   const navItems = [
     ['overview','⌂','Visão Geral'],['projects','◫','Projetos'],['strategy','◎','Estratégia'],
@@ -98,6 +104,15 @@
 
   let state = loadState();
   let commandOpen = false;
+  let liveState = {
+    loading:true,
+    available:false,
+    vm:[],
+    commands:[],
+    root:null,
+    lastLoadedAt:null,
+    error:''
+  };
 
   function loadState(){
     try{
@@ -119,6 +134,131 @@
   function esc(v=''){ return String(v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m])); }
   function fmtMoney(v){ return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:v<1?2:0,maximumFractionDigits:2}); }
   function now(){ return new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  function fmtDateTime(value){ return value ? new Date(value).toLocaleString('pt-BR') : '—'; }
+  function fmtAgo(seconds){
+    const s=Math.max(0,Number(seconds||0));
+    if(s<60) return `${s}s atrás`;
+    if(s<3600) return `${Math.floor(s/60)} min atrás`;
+    if(s<86400) return `${Math.floor(s/3600)} h atrás`;
+    return `${Math.floor(s/86400)} d atrás`;
+  }
+  function fmtDuration(seconds){
+    const total=Math.max(0,Number(seconds||0));
+    const days=Math.floor(total/86400);
+    const hours=Math.floor((total%86400)/3600);
+    const minutes=Math.floor((total%3600)/60);
+    if(days) return `${days}d ${hours}h`;
+    if(hours) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  }
+  function liveApi(path){
+    return fetch(`${LIVE_SUPABASE_URL}/rest/v1/${path}`,{
+      headers:{apikey:LIVE_SUPABASE_KEY,Authorization:`Bearer ${LIVE_SUPABASE_KEY}`},
+      cache:'no-store'
+    }).then(async res=>{
+      if(!res.ok) throw new Error(`HTTP ${res.status} em ${path}`);
+      return res.json();
+    });
+  }
+  async function loadLiveTelemetry(silent=false){
+    try{
+      const [vm,commands,rootRows]=await Promise.all([
+        liveApi(LIVE_VM_STATUS_PATH),
+        liveApi(LIVE_VM_COMMANDS_PATH),
+        liveApi(LIVE_ROOT_STATUS_PATH)
+      ]);
+      liveState={
+        loading:false,
+        available:Array.isArray(vm) && vm.length>0,
+        vm:Array.isArray(vm)?vm:[],
+        commands:Array.isArray(commands)?commands:[],
+        root:Array.isArray(rootRows)?(rootRows[0]||null):null,
+        lastLoadedAt:new Date().toISOString(),
+        error:''
+      };
+    }catch(err){
+      liveState={
+        ...liveState,
+        loading:false,
+        available:false,
+        error:err.message || 'Falha ao carregar telemetria real.'
+      };
+    }
+    if(!silent) render();
+  }
+  function primaryVm(){ return liveState.vm[0] || null; }
+  function badgeClassForStatus(status){
+    const value=String(status||'').toLowerCase();
+    if(['online','active','done','ok'].includes(value)) return 'ok';
+    if(['queued','running','processing','warn'].includes(value)) return 'warn';
+    if(['failed','offline','error'].includes(value)) return 'bad';
+    return 'info';
+  }
+  function liveBadge(){
+    if(liveState.available) return '<span class="badge ok hide-mobile">LIVE VM</span>';
+    if(liveState.loading) return '<span class="badge info hide-mobile">SYNC...</span>';
+    return '<span class="badge bad hide-mobile">LIVE OFF</span>';
+  }
+  function liveKpi(label,value,note,cls='',tag='LIVE'){
+    return kpi(label,value,note,cls,tag,'ok');
+  }
+  function servicePill(label,status){
+    return `<span class="badge ${badgeClassForStatus(status)}">${esc(label)}: ${esc(status || 'unknown')}</span>`;
+  }
+  function liveTelemetrySection(){
+    const vm=primaryVm();
+    if(liveState.loading && !vm){
+      return '<div class="notice">Carregando a telemetria real da VM e da fila do Cérebro Unificado…</div>';
+    }
+    if(liveState.error && !vm){
+      return `<div class="notice bad"><strong>Telemetria ao vivo indisponível:</strong> ${esc(liveState.error)}</div>`;
+    }
+    if(!vm){
+      return '<div class="notice warn"><strong>Telemetria ao vivo:</strong> nenhuma VM pública encontrada neste momento.</div>';
+    }
+    const commands=liveState.commands.slice(0,6);
+    const root=liveState.root || {};
+    return `
+      <div class="section-title"><h2>Jarvis + VM real</h2><span class="badge ${badgeClassForStatus(vm.status)}">${esc(vm.status)}</span></div>
+      <div class="grid kpis">
+        ${liveKpi('VM',esc(vm.display_name || vm.node_key),`Heartbeat ${fmtAgo(vm.heartbeat_age_seconds)}`,'metric-up')}
+        ${liveKpi('Fila aguardando',String(vm.queued_commands || 0),`Running agora: ${vm.running_commands || 0}`,(vm.queued_commands||0)>0?'metric-down':'metric-up')}
+        ${liveKpi('Disco usado',`${Number(vm.disk_used_pct || 0).toFixed(1)}%`,`Livre ${Number(vm.disk_free_gb || 0).toFixed(1)} GB`,Number(vm.disk_used_pct || 0) >= 85 ? 'metric-down' : 'metric-up')}
+        ${liveKpi('Uptime',fmtDuration(vm.uptime_seconds),`Atualizado ${fmtDateTime(liveState.lastLoadedAt)}`,'metric-up')}
+      </div>
+      <div class="grid two" style="margin-top:16px">
+        <section class="card">
+          <div class="row between"><h2>Estado operacional</h2><span class="badge info">Supabase público</span></div>
+          <div class="stack">
+            <div class="row between"><div><strong>Nó principal</strong><div class="muted tiny">${esc(vm.environment || 'production')}</div></div><span class="badge ${badgeClassForStatus(vm.status)}">${esc(vm.status)}</span></div>
+            <div class="row between"><div><strong>Último heartbeat</strong><div class="muted tiny">${fmtDateTime(vm.last_heartbeat_at)}</div></div><span class="badge ${vm.heartbeat_age_seconds <= 180 ? 'ok' : 'warn'}">${fmtAgo(vm.heartbeat_age_seconds)}</span></div>
+            <div class="row between"><div><strong>Último comando</strong><div class="muted tiny">${fmtDateTime(vm.last_command_at)}</div></div><span class="badge info">${esc(vm.agent_version || 'agent')}</span></div>
+            <div class="row between"><div><strong>Load médio</strong><div class="muted tiny">1m ${esc(vm.load_1m)} · 5m ${esc(vm.load_5m)} · 15m ${esc(vm.load_15m)}</div></div><span class="badge ${Number(vm.load_1m||0) >= 8 ? 'warn' : 'ok'}">${esc(vm.load_1m)}</span></div>
+            <div class="row between"><div><strong>Loops raiz</strong><div class="muted tiny">Interno ${root.internal_loop_last_success ? fmtDateTime(root.internal_loop_last_success) : 'aguardando'} · AETHER ${root.aether_external_last_success ? fmtDateTime(root.aether_external_last_success) : 'aguardando'}</div></div><span class="badge ${root.optimizer_loop_active ? 'ok' : 'warn'}">${root.optimizer_loop_active ? 'ativos' : 'parciais'}</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="row wrap">
+            ${servicePill('Graphiti', vm.graphiti_status)}
+            ${servicePill('Aether', vm.aether_status)}
+            ${servicePill('RAM', vm.ram_sentinel_status)}
+            ${servicePill('Drive', vm.gdrive_status)}
+            ${servicePill('Obsidian', vm.obsidian_status)}
+            ${servicePill('Agent', vm.vm_agent_status)}
+          </div>
+        </section>
+        <section class="card">
+          <div class="row between"><h2>Fila real recente</h2><span class="badge warn">${commands.length} itens</span></div>
+          <div class="table-wrap compact">
+            <table class="table">
+              <thead><tr><th>ID</th><th>Tipo</th><th>Status</th><th>Origem</th><th>Hora</th></tr></thead>
+              <tbody>
+                ${commands.length ? commands.map(cmd=>`<tr><td>#${cmd.id}</td><td><strong>${esc(cmd.command_type)}</strong><div class="tiny muted">${esc(cmd.risk_class || '—')}</div></td><td><span class="badge ${badgeClassForStatus(cmd.status)}">${esc(cmd.status)}</span></td><td>${esc(cmd.requested_by || '—')}</td><td>${fmtDateTime(cmd.finished_at || cmd.started_at || cmd.created_at)}</td></tr>`).join('') : '<tr><td colspan="5" class="muted">Sem comandos públicos recentes.</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>`;
+  }
   function toast(message,type='ok'){
     const root=document.getElementById('toast-root'); if(!root)return;
     root.innerHTML=`<div class="toast ${type}"><strong>${type==='bad'?'Atenção':'Concluído'}</strong><div class="muted">${esc(message)}</div></div>`;
@@ -224,7 +364,7 @@
           <header class="topbar">
             <div class="topbar-left"><button class="btn icon-btn ghost mobile-menu" data-action="toggle-menu">☰</button>
               <select class="select project-select" data-change="project">${state.projects.map(p=>`<option value="${p.id}" ${p.id===state.activeProjectId?'selected':''}>${esc(p.name)}</option>`).join('')}</select>
-              <span class="badge demo hide-mobile">DEMO</span>
+              <span class="badge demo hide-mobile">DEMO</span>${liveBadge()}
             </div>
             <div class="topbar-right"><button class="btn ghost hide-mobile" data-action="open-command">⌘ K&nbsp; Comandos</button><button class="btn icon-btn ghost" data-action="export">⇩</button><button class="btn primary" data-action="new-project">＋ Novo projeto</button></div>
           </header>
@@ -243,10 +383,11 @@
   function pageOverview(project){
     const complete=Object.values(state.gates).filter(g=>g.approved).length;
     const pipeline=[['Estratégia',state.gates.strategy.approved],['Roteiro',state.gates.script.approved],['Storyboard',state.gates.storyboard.approved],['Assets',state.gates.assets.approved],['Final',state.gates.final.approved],['Publicação',false]];
-    return `${pageHead('Visão Geral',`Cockpit operacional de ${esc(project.name)}. Dados abaixo são DEMO, exceto metadados explicitamente resolvidos.`,'<button class="btn cyan" data-page="source">Analisar nova fonte</button>')}
+    return `${pageHead('Visão Geral',`Cockpit operacional de ${esc(project.name)}. O Jarvis mistura dados DEMO com telemetria real da VM quando disponível.`,'<button class="btn cyan" data-page="source">Analisar nova fonte</button>')}
       <div class="grid kpis">
         ${kpi('Projetos ativos','3','+1 no período','metric-up')}${kpi('Pipeline médio',project.progress+'%','2 gates aprovados','')}${kpi('Aprovações pendentes',String(5-complete),'Bloqueiam a publicação','metric-down')}${kpi('Custo projetado','US$ 18,40','Estimativa DEMO','')}
       </div>
+      ${liveTelemetrySection()}
       <div class="card glow"><div class="row between wrap"><div><h2>Pipeline ponta a ponta</h2><div class="muted tiny">Aprovação humana obrigatória por padrão</div></div><span class="badge ${complete>=5?'ok':'warn'}">${complete}/5 gates</span></div><div class="divider"></div><div class="pipeline">${pipeline.map((p,i)=>`<div class="pipeline-step ${p[1]?'done':i===complete?'current':''}"><strong>${p[1]?'✓ ':''}${p[0]}</strong><small>${p[1]?'Aprovado':i===complete?'Próxima etapa':'Bloqueado'}</small></div>`).join('')}</div></div>
       <div class="grid two" style="margin-top:16px">
         <section class="card"><div class="row between"><h2>Fonte ativa</h2><span class="badge info">Metadados reais</span></div><div class="source-hero"><div class="video-thumb" style="background-image:url('${esc(state.source.thumbnail)}')"></div><div><h3>${esc(state.source.title)}</h3><p>${esc(state.source.channel)}</p><div class="row wrap"><span class="badge ok">Transcrição manual</span><span class="badge warn">3 claims não verificados</span><span class="badge demo">Análise DEMO</span></div><div class="divider"></div><button class="btn" data-page="source">Abrir inteligência da fonte</button></div></div></section>
@@ -257,7 +398,7 @@
         <section class="card"><h2>Saúde da automação</h2>${healthRow('Persistência local','Operacional',100,'ok')}${healthRow('Resolver do YouTube','Operacional',100,'ok')}${healthRow('Legendas públicas','Indisponíveis nesta fonte',0,'bad')}${healthRow('Fallback por transcrição manual','Resolvido',100,'ok')}${healthRow('APIs de geração','Não conectadas',0,'warn')}</section>
       </div>`;
   }
-  function kpi(label,value,note,cls){return `<div class="card kpi"><div class="kpi-top"><span>${label}</span><span>DEMO</span></div><div class="kpi-value">${value}</div><div class="kpi-note ${cls}">${note}</div></div>`}
+  function kpi(label,value,note,cls,tag='DEMO',tagClass='demo'){return `<div class="card kpi"><div class="kpi-top"><span>${label}</span><span class="badge ${tagClass}">${tag}</span></div><div class="kpi-value">${value}</div><div class="kpi-note ${cls}">${note}</div></div>`}
   function nextAction(n,t,d,page){return `<div class="blueprint-item"><div><strong>${t}</strong><div class="tiny muted">${d}</div><button class="btn ghost" style="margin-top:7px" data-page="${page}">Abrir</button></div></div>`}
   function healthRow(label,status,progress,type){return `<div style="margin:13px 0"><div class="row between"><span>${label}</span><span class="badge ${type}">${status}</span></div><div class="progress" style="margin-top:7px"><span style="width:${progress}%"></span></div></div>`}
 
@@ -305,12 +446,14 @@
   function miniCard(l,v){return `<div class="card"><div class="muted tiny">${l}</div><strong>${esc(v)}</strong></div>`}
 
   function pageStoryboard(){
-    return `${pageHead('Storyboard Maker Pro','Exatamente 40 cenas por padrão, com clímax, prompts, câmera, luz, narração e aprovação individual.','<button class="btn" data-action="generate-scenes">Gerar 40 cenas</button><button class="btn primary" data-action="approve-gate" data-gate="storyboard" ${state.scenes.length!==40?'disabled':''}>Aprovar storyboard</button>')}
+    const storyboardActions=`<button class="btn" data-action="generate-scenes">Gerar 40 cenas</button><button class="btn primary" data-action="approve-gate" data-gate="storyboard" ${state.scenes.length!==40?'disabled':''}>Aprovar storyboard</button>`;
+    return `${pageHead('Storyboard Maker Pro','Exatamente 40 cenas por padrão, com clímax, prompts, câmera, luz, narração e aprovação individual.',storyboardActions)}
       ${state.scenes.length?`<div class="grid four">${miniCard('Cenas',String(state.scenes.length))}${miniCard('Clímax','Cena 34')}${miniCard('Duração estimada',Math.round(state.scenes.reduce((a,s)=>a+s.duration,0)/60)+' min')}${miniCard('Aprovadas',state.scenes.filter(s=>s.approved).length+'/'+state.scenes.length)}</div><div class="notice" style="margin-top:16px"><strong>Bíblia visual:</strong> interface editorial premium, fundo escuro, acentos ciano/roxo/rosa, iluminação cinematográfica, composição original e textos inseridos apenas na pós-produção.</div><div class="section-title"><h2>40 cenas sequenciais</h2><div class="actions"><button class="btn ghost" data-action="approve-all-scenes">Aprovar todas</button></div></div><div class="scene-grid">${state.scenes.map(s=>`<article class="scene ${s.climax?'climax':''}"><div class="scene-visual">${s.climax?'◆':'▧'}</div><div class="scene-body"><div class="scene-title"><span>${String(s.num).padStart(2,'0')} · ${esc(s.title)}</span>${s.climax?'<span class="badge bad">CLÍMAX</span>':''}</div><p>${esc(s.description)}</p><div class="row between"><span class="badge ${s.approved?'ok':'demo'}">${s.approved?'Aprovada':s.status}</span><button class="btn ghost" data-action="scene-detail" data-id="${s.id}">Abrir</button></div></div></article>`).join('')}</div>`:`<div class="empty"><h2>Nenhuma cena gerada</h2><p>Gere o storyboard a partir do roteiro aprovado. O sistema criará exatamente 40 cenas.</p><button class="btn primary" data-action="generate-scenes">Gerar storyboard</button></div>`}`;
   }
 
   function pageAssets(){
-    return `${pageHead('Asset Studio','Prepare prompts, aprove custos e envie cada cena para o provedor escolhido. Sem integração, use handoff manual.','<button class="btn" data-action="prepare-assets">Preparar prompts</button><button class="btn primary" data-action="run-demo-jobs" ${!state.scenes.length?'disabled':''}>Executar jobs DEMO</button>')}
+    const assetActions=`<button class="btn" data-action="prepare-assets">Preparar prompts</button><button class="btn primary" data-action="run-demo-jobs" ${!state.scenes.length?'disabled':''}>Executar jobs DEMO</button>`;
+    return `${pageHead('Asset Studio','Prepare prompts, aprove custos e envie cada cena para o provedor escolhido. Sem integração, use handoff manual.',assetActions)}
       <div class="grid kpis">${kpi('Assets previstos',String((state.scenes.length||40)*3),'imagem + vídeo + voz','')}${kpi('Concluídos',String(state.assets.length),'Somente DEMO','metric-up')}${kpi('Jobs ativos',String(state.jobs.filter(j=>j.status==='running').length),'Fila local','')}${kpi('Custo estimado','US$ 18,40','Não debitado','')}</div>
       <div class="grid two"><section class="card"><h2>Roteamento por etapa</h2>${providerRoute('Texto e revisão','OpenAI / Anthropic','Não conectado')}${providerRoute('Imagem','OpenAI / Gemini','Não conectado')}${providerRoute('Image-to-video','Kling / Runway / Higgsfield','Não conectado')}${providerRoute('Voz','ElevenLabs / MiniMax','Não conectado')}${providerRoute('Música','Handoff licenciado','Manual')}</section>
       <section class="card"><div class="row between"><h2>Fila de jobs</h2><span class="badge demo">LOCAL</span></div>${state.jobs.length?state.jobs.map(j=>`<div class="job"><div><strong>${esc(j.name)}</strong><div class="tiny muted">${esc(j.provider)}</div></div><div class="progress"><span style="width:${j.progress}%"></span></div><span class="badge ${j.status==='completed'?'ok':j.status==='failed'?'bad':'info'}">${j.status}</span></div>`).join(''):'<div class="empty">Nenhum job iniciado.</div>'}</section></div>
@@ -343,7 +486,8 @@
 
   function pagePublisher(){
     const final=state.gates.final.approved;
-    return `${pageHead('Publisher do YouTube','Upload real requer OAuth server-side. Sem conexão, gere um pacote manual completo.','<button class="btn" data-action="download-package">⇩ Pacote manual</button><button class="btn primary" data-action="publish" ${!final?'disabled':''}>Publicar / Agendar</button>')}
+    const publisherActions=`<button class="btn" data-action="download-package">⇩ Pacote manual</button><button class="btn primary" data-action="publish" ${!final?'disabled':''}>Publicar / Agendar</button>`;
+    return `${pageHead('Publisher do YouTube','Upload real requer OAuth server-side. Sem conexão, gere um pacote manual completo.',publisherActions)}
       <div class="notice ${final?'':'bad'}"><strong>${final?'Gate final aprovado':'Publicação bloqueada'}:</strong> ${final?'ainda é necessário conectar OAuth do YouTube no backend.':'aprove vídeo e metadados antes de habilitar qualquer publicação.'}</div>
       <div class="grid two" style="margin-top:16px"><section class="card"><h2>Configuração</h2><div class="stack"><div class="field"><label>Título</label><input class="input" value="${esc(state.seo.titles[0]||state.script.title)}"></div><div class="field"><label>Visibilidade</label><select class="select"><option>Privado</option><option>Não listado</option><option>Público</option></select></div><div class="grid two"><div class="field"><label>Idioma</label><select class="select"><option>${activeProject().language}</option></select></div><div class="field"><label>Audiência</label><select class="select"><option>Não é conteúdo infantil</option><option>Conteúdo infantil</option></select></div></div><div class="field"><label>Agendamento</label><input class="input" type="datetime-local"></div></div></section>
       <section class="card"><h2>Status de prontidão</h2>${Object.entries(state.gates).map(([k,g])=>`<div class="row between" style="padding:10px 0;border-bottom:1px solid var(--line)"><span>${({strategy:'Estratégia',script:'Roteiro',storyboard:'Storyboard',assets:'Assets',final:'Final'})[k]}</span><span class="badge ${g.approved?'ok':'bad'}">${g.approved?'Aprovado':'Pendente'}</span></div>`).join('')}<div class="row between" style="padding:10px 0"><span>YouTube OAuth</span><span class="badge bad">Não conectado</span></div></section></div>`;
@@ -372,7 +516,31 @@
 
   function pageConnections(){
     return `${pageHead('Central de Conexões','Credenciais devem existir somente no backend/secret manager. Este frontend nunca armazena chaves.','<button class="btn" data-action="connection-architecture">Ver arquitetura segura</button>')}
-      <div class="notice warn"><strong>Estado atual:</strong> nenhuma integração de geração ou publicação está conectada. O resolver público do YouTube opera apenas com metadados e tentativa de legenda.</div><div class="grid three" style="margin-top:16px">${providers.map((p,i)=>`<article class="card"><div class="integration"><div class="integration-logo">${p[0].slice(0,2).toUpperCase()}</div><div><strong>${p[0]}</strong><div class="tiny muted">${p[1]}</div></div><span class="badge bad">Não conectado</span></div><div class="divider"></div><div class="tiny muted">Esperado: ${p[2]}</div><button class="btn ghost" style="margin-top:11px" data-action="connection-detail" data-id="${i}">Como conectar</button></article>`).join('')}</div>`;
+      <div class="notice warn"><strong>Estado atual:</strong> nenhuma integração de geração ou publicação está conectada. O resolver público do YouTube opera apenas com metadados e tentativa de legenda.</div>
+      <div class="grid two" style="margin-top:16px">
+        <section class="card">
+          <div class="row between"><h2>Telemetria pública conectada</h2><span class="badge ${liveState.available ? 'ok' : (liveState.loading ? 'info' : 'bad')}">${liveState.available ? 'ativa' : (liveState.loading ? 'sincronizando' : 'indisponível')}</span></div>
+          <div class="stack">
+            <div class="row between"><span>Supabase público</span><span class="badge ok">Conectado</span></div>
+            <div class="row between"><span>VM monitorada</span><span class="badge ${primaryVm() ? badgeClassForStatus(primaryVm().status) : 'bad'}">${primaryVm() ? esc(primaryVm().display_name || primaryVm().node_key) : 'sem dados'}</span></div>
+            <div class="row between"><span>Fila pública</span><span class="badge info">${liveState.commands.length} comandos recentes</span></div>
+            <div class="row between"><span>Última leitura</span><span class="badge info">${liveState.lastLoadedAt ? fmtDateTime(liveState.lastLoadedAt) : '—'}</span></div>
+          </div>
+        </section>
+        <section class="card">
+          <div class="row between"><h2>Leitura exposta ao Jarvis</h2><span class="badge demo">somente leitura</span></div>
+          <div class="row wrap">
+            ${servicePill('VM', primaryVm()?.status)}
+            ${servicePill('Graphiti', primaryVm()?.graphiti_status)}
+            ${servicePill('Aether', primaryVm()?.aether_status)}
+            ${servicePill('RAM', primaryVm()?.ram_sentinel_status)}
+            ${servicePill('Drive', primaryVm()?.gdrive_status)}
+          </div>
+          <div class="divider"></div>
+          <p class="tiny muted">Esta camada pública foi sanitizada para o dashboard mostrar estado de VM, heartbeat e fila sem expor segredos de operação.</p>
+        </section>
+      </div>
+      <div class="grid three" style="margin-top:16px">${providers.map((p,i)=>`<article class="card"><div class="integration"><div class="integration-logo">${p[0].slice(0,2).toUpperCase()}</div><div><strong>${p[0]}</strong><div class="tiny muted">${p[1]}</div></div><span class="badge bad">Não conectado</span></div><div class="divider"></div><div class="tiny muted">Esperado: ${p[2]}</div><button class="btn ghost" style="margin-top:11px" data-action="connection-detail" data-id="${i}">Como conectar</button></article>`).join('')}</div>`;
   }
 
   function pageSettings(){
@@ -498,5 +666,6 @@
 
   if(!state.script.sections.length) buildDefaultScript();
   if(!state.scenes.length) generateScenes();
-  save(); render();
+  save(); render(); loadLiveTelemetry(); setInterval(()=>loadLiveTelemetry(), LIVE_REFRESH_MS);
 })();
+
